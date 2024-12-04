@@ -2,6 +2,7 @@ use std::env;
 use std::fs::File;
 use std::io::{self, BufRead};
 use std::path::Path;
+use std::collections::HashMap;
 
 fn main() {
     let filename = env::args().nth(1).expect("No filename provided");
@@ -12,11 +13,15 @@ fn main() {
       panic!("Could not get lists");
     });
 
-    let mut acc = 0;
+    let freq_map2 = get_frequency_map(&vec2);
+
+    let (mut similarity_acc, mut distance_acc) = (0, 0);
     for i in 0..vec1.len() {
-      acc += (vec1[i] - vec2[i]).abs();
+      distance_acc += (vec1[i] - vec2[i]).abs();
+      similarity_acc += vec1[i] * freq_map2.get(&vec1[i]).unwrap_or(&0);
     }
-    println!("Total distance: {}", acc);
+    println!("Total distance: {}", distance_acc);
+    println!("Similarity score: {}", similarity_acc);
 }
 
 fn get_sorted_columns<I>(lines: I) -> Option<(Vec<i32>, Vec<i32>)>
@@ -36,6 +41,14 @@ fn get_sorted_columns<I>(lines: I) -> Option<(Vec<i32>, Vec<i32>)>
   vec1.sort();
   vec2.sort();
   Some((vec1, vec2))
+}
+
+fn get_frequency_map(vec: &Vec<i32>) -> std::collections::HashMap<i32, i32> {
+  vec.into_iter().fold(HashMap::new(), |mut map, val| {
+    let count = map.entry(*val).or_insert(0);
+    *count += 1;
+    map
+  })
 }
 
 fn read_file<P>(filename: P) -> io::Result<io::BufReader<File>> where P: AsRef<Path>, {
