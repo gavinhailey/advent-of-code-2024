@@ -40,14 +40,13 @@ fn is_safe(seq: &Vec<i32>) -> bool {
     return false;
   }
   let is_first_asc = seq[0] < seq[1];
-  for i in 0..(seq.len()-1) {
-    let diff = (seq[i] - seq[i+1]).abs();
-    let is_asc = seq[i] < seq[i+1];
-    if diff < 1 || diff > 3 || is_asc != is_first_asc {
-      return false;
-    }
-  }
-  true
+  // probably less efficient than using a for loop with break, but kinda fun
+  seq.windows(2).map(|vals| {
+    let (a, b) = (vals[0], vals[1]);
+    let diff = (a - b).abs();
+    let is_asc = a < b;
+    diff < 1 || diff > 3 || is_asc != is_first_asc
+  }).all(|x| !x)
 }
 
 fn read_file<P>(filename: P) -> io::Result<io::BufReader<File>> where P: AsRef<Path>, {
